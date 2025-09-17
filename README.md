@@ -1,6 +1,6 @@
 # AS2025_WEB303 &mdash; Practical Work Repository
 
-Welcome to the official repository for all practical work and report submissions for the **WEB303** module (Autumn Semester, 2025) at College of Science and Technology.
+Welcome to the official repository for all practical work and report submissions for the **WEB303**&mdash;**Microservices & Serverless Applications**  module (Autumn Semester, 2025) at College of Science and Technology.
 
 ## Module Overview
 
