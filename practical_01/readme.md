@@ -169,15 +169,21 @@ practical_01/
 I encountered the major challenges during `docker-compose up --build`
 
 **1. Permission Denied**  
-Docker need root user permission to be run. So run `sudo docker-compose up --build`
+Docker need root user permission to be run. So run:
+
+```bash 
+sudo docker-compose up --build
+```   
     
 **2. Folder Renaming Issues**  
 Renaming the project folder from `practical-one` to `practical_01` caused runtime panics in the services. The generated protobuf files still contained the old module paths, resulting in service crashes immediately after startup.
 
 I have learned that after directory and module renaming, the protobuf files had to be regenerated to align import paths with the Go module. Otherwise, services crashed due to protobuf initialization errors. So I deleted the old four go code and regenerated Go Code.  
-`protoc --go_out=./proto/gen --go_opt=paths=source_relative \
+```bash
+protoc --go_out=./proto/gen --go_opt=paths=source_relative \
     --go-grpc_out=./proto/gen --go-grpc_opt=paths=source_relative \
-    proto/*.proto`
+    proto/*.proto
+```
 
 **3. Proto Code Generation Paths**  
 When we generate the Go code, it goes into the `./proto/gen/proto` directory and gave error when running the docker build command. So I ensured the generated code was placed in the correct directory (`./proto/gen/`).
@@ -191,13 +197,18 @@ So I moved the go.mod and go.sum to the root directory that is practical_01 and 
 Go cannot see your `proto/gen` folder inside Docker because Dockerfile `COPY` commands failed as incorrect path were used. So with `COPY . .` it copied the whole project root, so contains `proto/gen` exists before Go build.
 
 **6.Docker Volume / Container Configuration Errors**   
-Errors like `KeyError: 'ContainerConfig'` appeared, likely caused by leftover containers or corrupted Docker metadata. It required stopping all containers, pruning unused volumes/images, and rebuilding.  
-`sudo docker system prune -af`  
-`sudo docker volume prune -f`  
+Errors like `KeyError: 'ContainerConfig'` appeared, likely caused by leftover containers or corrupted Docker metadata. It required stopping all containers, pruning unused volumes/images, and rebuilding. 
+
+```bash 
+sudo docker system prune -af  
+sudo docker volume prune -f
+``` 
 This removes all stopped containers, dangling images, and unused volumes.  
 Rebuild everything clean  
-`sudo docker-compose up --build --force-recreate
-`
+
+```bash
+sudo docker-compose up --build --force-recreate
+```
 
 ---
 
