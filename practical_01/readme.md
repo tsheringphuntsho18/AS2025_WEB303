@@ -103,17 +103,21 @@ practical_01/
 ## Run and Verify
 
 **1. Run Docker Compose:** From the root of your practical_01 directory, run:  
-`sudo docker-compose up --build` .
+```
+sudo docker-compose up --build
+```
 
 **Expected Outcome:** 
 
 ![docker build](/assets/build.png)
 
 **2. Test the Endpoint:** To test the flow, we'll use grpcurl.  
-`grpcurl -plaintext \
+```bash
+grpcurl -plaintext \
     -import-path ./proto -proto greeter.proto \
     -d '{"name": "WEB303 Student"}' \
-    0.0.0.0:50051 greeter.GreeterService/SayHello`
+    0.0.0.0:50051 greeter.GreeterService/SayHello
+```
 
 
 **Expected Outcome:** 
