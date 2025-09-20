@@ -20,8 +20,6 @@ AS2025_WEB303/
 │   └── ...
 ├── practical_03/
 │   └── ...
-├── reports/
-│   └── [any report files]
 ├── assets/
 │   └── [images, diagrams, etc.]
 └── README.md
