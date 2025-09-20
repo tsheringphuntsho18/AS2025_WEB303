@@ -10,15 +10,15 @@ This repository is dedicated to the practical works and related documentation fo
 
 ```
 AS2025_WEB303/
-├── practical-one/
+├── practical_01/
 │   ├── src/
 │   ├── README.md
 │   └── ...
-├── practical-two/
+├── practical_02/
 │   ├── src/
 │   ├── README.md
 │   └── ...
-├── practical-three/
+├── practical_03/
 │   └── ...
 ├── reports/
 │   └── [any report files]
@@ -29,7 +29,7 @@ AS2025_WEB303/
 
 ## How to Use This Repository
 
-- Each practical work has its own folder (e.g., `practical-one/`).
+- Each practical work has its own folder (e.g., `practical_01/`).
 - Within each folder, you will find:
   - All relevant code and resources.
   - A dedicated `README.md` file describing the task, my approach, implementation steps, and any challenges encountered.
