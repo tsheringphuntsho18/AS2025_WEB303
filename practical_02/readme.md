@@ -18,8 +18,12 @@ practical_02/
 ![Consul UI Services](/assets/consul_ui.png)
 *Screenshot of the Consul UI showing both services registered and healthy.*
 
-### 2. API Requests via Postman/cURL
+### 2. API Requests via Postmam
+
+Test the users service
 ![Postman Requests](/assets/postman1.png)
+
+Test the products service
 ![Postman Requests](/assets/postman2.png)
 
 *Screenshot demonstrating successful API calls to both services through the gateway*
