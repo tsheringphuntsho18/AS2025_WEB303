@@ -87,7 +87,9 @@ kubectl port-forward service/kong-kong-proxy 8080:80 -n student-cafe
 
 ### Issue 3: Service Discovery Failure
 
-**Problem**: Order service couldn't find food-catalog-service through Consul
+**Problem**: Order service couldn't find food-catalog-service through Consul  
+Resulting the failure of place order functionality.
+![Order fail](/assets/practical4Screenshots/order-fail.png)
 
 ![food-catalog-service not found](/assets/practical4Screenshots/postman-fail.png)
 
