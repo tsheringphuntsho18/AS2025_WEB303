@@ -45,7 +45,7 @@ This practical demonstrates the transformation of a monolithic Student Cafe appl
 
 **Justification:**
 
-- Single responsibility: Manages only user-related operations
+- Single responsibility: Manages only user related operations
 - Independent scalability: Can scale based on user registration patterns
 - Security isolation: User data is isolated in its own database
 - Reusability: Can be used by multiple other services
@@ -119,105 +119,55 @@ This practical demonstrates the transformation of a monolithic Student Cafe appl
 - Automatic failover if service instances become unhealthy
 
 ## Challenges Encountered and Solutions
+During the implementation of this microservices architecture, the development process proceeded relatively smoothly without encountering major technical challenges. The systematic approach to service decomposition and the well-defined service boundaries helped avoid common pitfalls associated with distributed systems implementation.
 
-### 1. Service Discovery and Communication
+The only minor issue encountered was a small bug related to service configuration, which was quickly resolved by applying lessons learned from previous practical exercises. This experience demonstrates how accumulated knowledge from earlier practicals contributes to more efficient problem-solving in subsequent practicals.
 
-**Challenge:** Services needed to communicate without hardcoded URLs
-**Solution:**
+## Screenshots
 
-- Implemented Consul for service registration and discovery
-- API Gateway dynamically resolves service locations
-- Health checks ensure only healthy services receive traffic
+### 1. Consul UI - Service Discovery Dashboard
+![Consul Services Health Status](/assets/practical5Screenshots/consul.png)
+![Consul Services Health Status](/assets/practical5Screenshots/consul_node.png)
+*Screenshot showing all services (User, Menu, Order, API Gateway) registered and healthy in Consul UI*
 
-### 2. Database Independence
+### 2. Order Creation Process
+![Successful Order Creation](/assets/practical5Screenshots/post-order.png)
+*Postman output showing successfull order creation*
 
-**Challenge:** Ensuring complete data isolation between services
-**Solution:**
+![Successful Order Creation](/assets/practical5Screenshots/post-terminal.png)
+*Terminal output showing successful order creation with inter-service communication*
 
-- Separate PostgreSQL containers for each service
-- Different ports (5433, 5434, 5435) for each database
-- Independent schemas and migrations per service
+### 3. Service Communication Logs
+![Order Service Logs](/assets/practical5Screenshots/order-logs.png)
+*Order service logs*
 
-### 3. Inter-Service Data Validation
+### 4. Docker Compose Services
+![Docker Services Running](/assets/practical5Screenshots/docker-build.png)
+*All microservices and databases running via Docker Compose*
 
-**Challenge:** Order service needs to validate users and menu items from other services
-**Solution:**
-
-- HTTP calls to validate data existence
-- Snapshot pricing at order creation time
-- Graceful error handling for service unavailability
-
-### 4. Container Networking
-
-**Challenge:** Services communicating within Docker network
-**Solution:**
-
-- Used service names as hostnames in Docker Compose
-- Proper dependency ordering with `depends_on`
-- Internal network communication on service ports
-
-### 5. Development vs Production Configuration
-
-**Challenge:** Different database URLs for local vs containerized development
-**Solution:**
-
-- Environment variables for database configuration
-- Fallback defaults for local development
-- Container-specific environment variables in docker-compose.yml
-
-## Getting Started
-
-### Prerequisites
-
-- Docker and Docker Compose installed
-- Go 1.21+ (for local development)
-- PostgreSQL client (optional, for database inspection)
-
-## API Endpoints
-
-### User Service (via API Gateway: `/api/users`)
-
-- `POST /api/users` - Create user
-- `GET /api/users/{id}` - Get user
-
-### Menu Service (via API Gateway: `/api/menu`)
-
-- `POST /api/menu` - Create menu item
-- `GET /api/menu/{id}` - Get menu item
-
-### Order Service (via API Gateway: `/api/orders`)
-
-- `POST /api/orders` - Create order
-- `GET /api/orders` - List orders
-
-## Monitoring and Health Checks
-
-### Consul Health Monitoring
-
-- Access Consul UI at http://localhost:8500
-- All services register with health checks
-- 10-second intervals with 3-second timeouts
-- HTTP health checks on `/health` endpoints
+### 5. API Gateway Routing
+![API Gateway Requests](/assets/practical5Screenshots/api-routiing.png)
+*API Gateway successfully routing requests to appropriate microservices*
 
 ## Reflection Essay
 
 ### Monolith vs Microservices:
-The choice between monolithic and microservices architectures for the Student Cafe system depends on scale and complexity. A monolithic design is ideal for small teams or early development stages, offering simplicity, unified database access, and easy maintenance of ACID properties. However, as the system grows, microservices provide better scalability and fault isolation. For instance, the menu service benefits from caching and read replicas due to frequent reads, while the order service requires transactional integrity and independent scaling. Additionally, microservices allow technology diversity—such as using NoSQL for the menu and PostgreSQL for orders—enabling flexibility and performance optimization as system demands evolve.
+The choice between monolithic and microservices architectures for the Student Cafe system depends on scale and complexity. A monolithic design is ideal for small teams or early development stages, offering simplicity, unified database access, and easy maintenance of ACID properties. However, as the system grows, microservices provide better scalability and fault isolation. For instance, the menu service benefits from caching and read replicas due to frequent reads, while the order service requires transactional integrity and independent scaling. Additionally, microservices allow technology diversity such as using NoSQL for the menu and PostgreSQL for orders enabling flexibility and performance optimization as system demands evolve.
 
 ### Database-per-Service Pattern: Benefits and Complications
 The database-per-service pattern in the Student Cafe system enables each microservice to own and optimize its data independently, allowing flexible schema changes and targeted performance tuning. However, this isolation introduces challenges in maintaining data consistency and handling cross-service operations. Unlike the monolithic model, where user and menu validations occurred within a single transaction, the microservices setup requires inter-service communication and orchestration, increasing complexity and potential failure points. Additionally, tasks like generating analytical reports across services become more difficult, often requiring data duplication or eventual consistency mechanisms to balance autonomy with functionality.
 
 ### When NOT to Split a Monolith
-Avoiding microservices is often the wiser choice when teams are small or system domains are tightly coupled. For the Student Cafe system, a monolithic architecture remains more efficient if the development team lacks the resources to manage distributed systems, as microservices introduce added complexity through service discovery, communication, and debugging challenges. When business logic—such as real-time inventory updates affecting orders—is highly interdependent, separating services can reduce performance and increase coordination overhead. Moreover, if domain boundaries are still evolving or all functionality is handled by a single team, maintaining a monolith aligns better with Conway’s Law, ensuring simplicity, cohesion, and faster development cycles.
+Avoiding microservices is often the wiser choice when teams are small or system domains are tightly coupled. For the Student Cafe system, a monolithic architecture remains more efficient if the development team lacks the resources to manage distributed systems, as microservices introduce added complexity through service discovery, communication, and debugging challenges. When business logic such as real time inventory updates affecting orders is highly interdependent, separating services can reduce performance and increase coordination overhead. Moreover, if domain boundaries are still evolving or all functionality is handled by a single team, maintaining a monolith aligns better with Conway’s Law, ensuring simplicity, cohesion, and faster development cycles.
 
 ### Inter-Service Communication and Validation Patterns
-In the Student Cafe system, inter-service communication is essential for maintaining data integrity across microservices. The order service validates user and menu data via HTTP requests to the respective services, preserving autonomy and ensuring accurate order creation. However, this introduces latency and potential network failures, as each order involves multiple service calls. To mitigate issues, the system adopts a fail-fast strategy—terminating order creation immediately if validation fails. While eventual consistency could improve performance by deferring validations, the synchronous approach is preferred here, as it prioritizes accuracy and reliability, which are critical for a real-time ordering experience.
+In the Student Cafe system, inter-service communication is essential for maintaining data integrity across microservices. The order service validates user and menu data via HTTP requests to the respective services, preserving autonomy and ensuring accurate order creation. However, this introduces latency and potential network failures, as each order involves multiple service calls. To mitigate issues, the system adopts a fail fast strategy terminating order creation immediately if validation fails. While eventual consistency could improve performance by deferring validations, the synchronous approach is preferred here, as it prioritizes accuracy and reliability, which are critical for a real time ordering experience.
 
 ### Resilience and Failure Handling
-The menu service’s availability during order creation underscores the challenge of handling partial failures in microservices. In the current setup, if the menu service goes down, the entire order process fails—prioritizing consistency over availability. To enhance resilience, strategies like implementing circuit breakers can help the system fail gracefully, while caching menu data in the order service can allow temporary operations during downtime. Alternatively, accepting orders with “unknown” menu items for later validation promotes availability but adds complexity and risks temporary inconsistency. Each solution reflects a trade-off between reliability, consistency, and system complexity.
+The menu service’s availability during order creation underscores the challenge of handling partial failures in microservices. In the current setup, if the menu service goes down, the entire order process fails prioritizing consistency over availability. To enhance resilience, strategies like implementing circuit breakers can help the system fail gracefully, while caching menu data in the order service can allow temporary operations during downtime. Alternatively, accepting orders with “unknown” menu items for later validation promotes availability but adds complexity and risks temporary inconsistency. Each solution reflects a trade-off between reliability, consistency, and system complexity.
 
 ### Performance Optimization Through Caching
-Caching offers significant performance gains for the Student Cafe system, particularly for the read-intensive menu service. By using Redis or API gateway-level response caching, frequently accessed menu data can be served from memory, reducing database load and improving response times. However, caching also introduces data consistency challenges, as updates to menu items or prices require precise invalidation strategies to prevent stale data. Similarly, caching validated user or menu data in the order service can reduce redundant network calls, but maintaining accuracy demands careful synchronization and invalidation mechanisms to balance speed with reliability.
+Caching offers significant performance gains for the Student Cafe system, particularly for the read intensive menu service. By using Redis or API gateway level response caching, frequently accessed menu data can be served from memory, reducing database load and improving response times. However, caching also introduces data consistency challenges, as updates to menu items or prices require precise invalidation strategies to prevent stale data. Similarly, caching validated user or menu data in the order service can reduce redundant network calls, but maintaining accuracy demands careful synchronization and invalidation mechanisms to balance speed with reliability.
 
 ## Conclusion
-This practical demonstrated clear identification of architectural characteristics and trade-offs, effectively applying domain-driven design principles to establish logical service boundaries around user management, menu operations, and order processing. The systematic extraction process maintained full functionality while transitioning from a single codebase to independent services, implemented robust service discovery patterns using Consul for dynamic service registration and health monitoring, and successfully orchestrated the complete multi-service ecosystem using Docker Compose with proper networking and dependency management. Through hands-on implementation using Go, Docker, PostgreSQL, and Consul, this exercise provided invaluable insights into real-world distributed systems challenges—from inter-service communication and data consistency to infrastructure management and cross-service validation. This practical serves as an essential foundation for understanding enterprise-level system design and the practical realities of modern distributed software architecture.
+This practical demonstrated clear identification of architectural characteristics and trade-offs, effectively applying domain driven design principles to establish logical service boundaries around user management, menu operations, and order processing. The systematic extraction process maintained full functionality while transitioning from a single codebase to independent services, implemented robust service discovery patterns using Consul for dynamic service registration and health monitoring, and successfully orchestrated the complete multi service ecosystem using Docker Compose with proper networking and dependency management. Through hands-on implementation using Go, Docker, PostgreSQL, and Consul, this exercise provided invaluable insights into real world distributed systems challenges from inter-service communication and data consistency to infrastructure management and cross service validation. This practical serves as an essential foundation for understanding enterprise level system design and the practical realities of modern distributed software architecture.
