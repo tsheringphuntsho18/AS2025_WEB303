@@ -173,15 +173,15 @@ _Screenshot showing successful API responses from both catalog and order service
 ## Conclusion
 I have successfully completed the assigned exercise to identify and fix the broken order submission functionality. The task involved:
 
-✅ **Task 1 - Deploy and Test Application:**
+**Task 1 - Deploy and Test Application:**
 - Successfully deployed all microservices components on Kubernetes
 - Accessed the React frontend through Kong gateway at http://localhost:8080
 - Initially observed order submission failures as expected
 
-✅ **Task 2 - Debug and Identify Issues:**
+**Task 2 - Debug and Identify Issues:**
 - **Root Cause Identified:** Service discovery failure between order service and food-catalog service
 - **Issue Details:** Consul health checks were preventing proper service registration and discovery
 - **Solution Implemented:** Added Kubernetes DNS fallback mechanism when Consul discovery fails
 
 
-**Final Status**: ✅ All services operational, orders can be placed successfully
+**Final Status**: All services operational, orders can be placed successfully

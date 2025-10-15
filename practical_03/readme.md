@@ -28,9 +28,9 @@ The system consists of the following components:
 
 Consul UI accessible at http://localhost:8500 showing:
 
-- ✅ users-service registered and healthy
-- ✅ products-service registered and healthy
-- ✅ Services discoverable by API Gateway
+- users-service registered and healthy
+- products-service registered and healthy
+- Services discoverable by API Gateway
 
 ## Screenshots
 
@@ -69,11 +69,11 @@ Consul UI accessible at http://localhost:8500 showing:
 
 This practical successfully demonstrates a complete microservices architecture with:
 
-- ✅ Service-to-service gRPC communication
-- ✅ Individual database per service
-- ✅ Service discovery with Consul
-- ✅ API Gateway as single entry point
-- ✅ Data aggregation across services
-- ✅ Containerized deployment with Docker Compose
+- Service-to-service gRPC communication
+- Individual database per service
+- Service discovery with Consul
+- API Gateway as single entry point
+- Data aggregation across services
+- Containerized deployment with Docker Compose
 
 The implementation showcases industry-standard microservices patterns and provides a scalable foundation
