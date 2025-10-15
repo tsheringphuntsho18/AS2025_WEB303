@@ -1,4 +1,4 @@
-# Practical 5: Microservices Architecture - Student Cafe System
+# Practical_05 Report: Microservices Architecture - Student Cafe System
 
 ## Overview
 
@@ -29,10 +29,6 @@ This project demonstrates the transformation of a monolithic Student Cafe applic
     │   User DB    │ │   Menu DB    │ │   Order DB   │
     │ (Port 5434)  │ │ (Port 5433)  │ │ (Port 5435)  │
     └──────────────┘ └──────────────┘ └──────────────┘
-
-    Inter-Service Communication:
-    Order Service → User Service (Validate user exists)
-    Order Service → Menu Service (Validate menu items & get prices)
 ```
 
 ## Service Boundaries Justification
