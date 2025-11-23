@@ -1,43 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"net/http"
+	"net"
 	"os"
 	"order-service/database"
-	"order-service/handlers"
+	grpcserver "order-service/grpc"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"fmt"
-	consulapi "github.com/hashicorp/consul/api"
+	orderv1 "github.com/douglasswm/student-cafe-protos/gen/go/order/v1"
+	"google.golang.org/grpc"
 )
-
-func registerWithConsul(serviceName string, port int) error {
-    config := consulapi.DefaultConfig()
-    config.Address = "consul:8500"
-
-    consul, err := consulapi.NewClient(config)
-    if err != nil {
-        return err
-    }
-
-    hostname, _ := os.Hostname()
-
-    registration := &consulapi.AgentServiceRegistration{
-        ID:      fmt.Sprintf("%s-%s", serviceName, hostname),
-        Name:    serviceName,
-        Port:    port,
-        Address: hostname,
-        Check: &consulapi.AgentServiceCheck{
-            HTTP:     fmt.Sprintf("http://%s:%d/health", hostname, port),
-            Interval: "10s",
-            Timeout:  "3s",
-        },
-    }
-
-    return consul.Agent().ServiceRegister(registration)
-}
 
 func main() {
 	// Connect to dedicated order database
@@ -50,26 +23,41 @@ func main() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	// Add health endpoint
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-	// Order endpoints
-	r.Post("/orders", handlers.CreateOrder)
-	r.Get("/orders", handlers.GetOrders)
-	
-	// Register service with Consul
-	if err := registerWithConsul("order-service", 8083); err != nil {
-		log.Fatalf("Failed to register service with Consul: %v", err)
+	// Get gRPC port from environment
+	grpcPort := os.Getenv("GRPC_PORT")
+	if grpcPort == "" {
+		grpcPort = "9093"
 	}
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8083"
+	// Start listening on TCP port
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", grpcPort))
+	if err != nil {
+		log.Fatalf("Failed to listen on gRPC port %s: %v", grpcPort, err)
 	}
 
-	log.Printf("Order service starting on :%s", port)
-	http.ListenAndServe(":"+port, r)
+	// Get service addresses for gRPC clients (order service calls user and menu)
+	userServiceAddr := os.Getenv("USER_SERVICE_GRPC_ADDR")
+	if userServiceAddr == "" {
+		userServiceAddr = "user-service:9091"
+	}
+
+	menuServiceAddr := os.Getenv("MENU_SERVICE_GRPC_ADDR")
+	if menuServiceAddr == "" {
+		menuServiceAddr = "menu-service:9092"
+	}
+
+	// Create order gRPC server with clients to other services
+	orderServer, err := grpcserver.NewOrderServer(userServiceAddr, menuServiceAddr)
+	if err != nil {
+		log.Fatalf("Failed to create gRPC order server: %v", err)
+	}
+
+	// Create and register gRPC server
+	s := grpc.NewServer()
+	orderv1.RegisterOrderServiceServer(s, orderServer)
+
+	log.Printf("Order service (gRPC only) starting on :%s", grpcPort)
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("gRPC server failed: %v", err)
+	}
 }

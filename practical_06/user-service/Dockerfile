@@ -1,12 +1,23 @@
 FROM golang:1.25-alpine AS builder
-WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o /user-service .
 
+WORKDIR /app
+
+# Copy go.mod + go.sum
+COPY user-service/go.mod user-service/go.sum ./
+
+# Copy protos
+COPY student-cafe-protos ./student-cafe-protos
+
+# Download modules
+RUN go mod download
+
+# Copy actual service source code
+COPY user-service/. .
+
+# Build
+RUN CGO_ENABLED=0 GOOS=linux go build -o /user-service
+
+# Final stage
 FROM alpine:latest
-WORKDIR /
 COPY --from=builder /user-service /user-service
-EXPOSE 8081
-CMD ["/user-service"]
+ENTRYPOINT ["/user-service"]

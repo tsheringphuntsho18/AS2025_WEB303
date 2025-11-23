@@ -1,47 +1,8 @@
 services:
-  postgres:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: student_cafe
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  menu-db:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: menu_db
-    ports:
-      - "5433:5432"  # Different host port
-    volumes:
-      - menu_data:/var/lib/postgresql/data
-
-  monolith:
-    build: ./student-cafe-monolith
-    ports:
-      - "8085:8080"
-    depends_on:
-      - postgres
-    environment:
-      DATABASE_URL: "host=postgres user=postgres password=postgres dbname=student_cafe port=5432 sslmode=disable"
-
-  menu-service:
-    build: ./menu-service
-    ports:
-      - "8082:8082"
-    depends_on:
-      - menu-db
-    environment:
-      DATABASE_URL: "host=menu-db user=postgres password=postgres dbname=menu_db port=5432 sslmode=disable"
-      PORT: "8082"
-  
+  # Databases
   user-db:
     image: postgres:13
+    container_name: user-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -50,16 +11,23 @@ services:
       - "5434:5432"
     volumes:
       - user_data:/var/lib/postgresql/data
+    networks:
+      - cafe-network
 
-  user-service:
-    build: ./user-service
-    ports:
-      - "8081:8081"
-    depends_on:
-      - user-db
+  menu-db:
+    image: postgres:13
+    container_name: menu-db
     environment:
-      DATABASE_URL: "host=user-db user=postgres password=postgres dbname=user_db port=5432 sslmode=disable"
-      PORT: "8081"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: menu_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - menu_data:/var/lib/postgresql/data
+    networks:
+      - cafe-network
+
   order-db:
     image: postgres:13
     container_name: order-db
@@ -71,38 +39,83 @@ services:
       - "5435:5432"
     volumes:
       - order_data:/var/lib/postgresql/data
+    networks:
+      - cafe-network
+
+  # Microservices (gRPC only)
+  user-service:
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    container_name: user-service
+    ports:
+      - "9091:9091"  # gRPC only
+    depends_on:
+      - user-db
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@user-db:5432/user_db?sslmode=disable
+      GRPC_PORT: "9091"
+    networks:
+      - cafe-network
+
+  menu-service:
+    build:
+      context: .
+      dockerfile: menu-service/Dockerfile
+    container_name: menu-service
+    ports:
+      - "9092:9092"  # gRPC only
+    depends_on:
+      - menu-db
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@menu-db:5432/menu_db?sslmode=disable
+      GRPC_PORT: "9092"
+    networks:
+      - cafe-network
 
   order-service:
-    build: ./order-service
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
     container_name: order-service
     ports:
-      - "8083:8083"
+      - "9093:9093"  # gRPC only
     depends_on:
       - order-db
       - user-service
       - menu-service
     environment:
-      DATABASE_URL: "host=order-db user=postgres password=postgres dbname=order_db port=5432 sslmode=disable"
-      PORT: "8083"
+      DATABASE_URL: postgres://postgres:postgres@order-db:5432/order_db?sslmode=disable
+      GRPC_PORT: "9093"
+      USER_SERVICE_GRPC_ADDR: "user-service:9091"
+      MENU_SERVICE_GRPC_ADDR: "menu-service:9092"
+    networks:
+      - cafe-network
 
-  # API Gateway
+  # API Gateway (HTTP→gRPC translation layer)
   api-gateway:
-    build: ./api-gateway
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
     container_name: api-gateway
     ports:
-      - "8080:8080"
+      - "8080:8080"  # HTTP for external clients
     depends_on:
       - user-service
       - menu-service
       - order-service
-  consul:
-    image: hashicorp/consul:latest
-    ports:
-      - "8500:8500"
-    command: "agent -dev -client=0.0.0.0 -ui"
+    environment:
+      USER_SERVICE_GRPC_ADDR: "user-service:9091"
+      MENU_SERVICE_GRPC_ADDR: "menu-service:9092"
+      ORDER_SERVICE_GRPC_ADDR: "order-service:9093"
+    networks:
+      - cafe-network
 
 volumes:
-  postgres_data:
-  menu_data:
   user_data:
+  menu_data:
   order_data:
+
+networks:
+  cafe-network:
+    driver: bridge
